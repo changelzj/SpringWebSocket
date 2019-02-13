@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Chat</title>
+</head>
+
+<body>
+
+<span>登录昵称:</span>
+<input id="user" type="text" />
+<button  onclick="openWebSocket()"> 登录会话 </button>
+<button  onclick="closeWebSocket()"> 关闭连接 </button>
+
+<hr>
+
+
+<textarea style="width: 500px; height: 150px" id="text" ></textarea><br>
+<button onclick="send()"> 发送消息 </button>
+<button onclick="clean()"> 清空屏幕 </button>
+
+
+
+<div id="message">
+
+</div>
+
+<script type="text/javascript">
+
+    var websocket = null;
+    var host = window.location.host;
+
+    function openWebSocket() {
+
+        if('WebSocket' in window) {
+            if (websocket != null) {
+                alert("会话已经打开，无需再次连接！");
+                return;
+            }
+            websocket = new WebSocket("ws://"+host+"/chat");
+
+            websocket.onerror = function(){
+                alert('连接出现错误');
+            };
+
+            websocket.onopen = function(event){
+                alert('会话已经打开');
+            }
+
+            websocket.onmessage = function(event){
+                document.getElementById('message').innerHTML += event.data + '<br/>';
+            }
+
+            websocket.onclose = function(){
+                websocket = null;
+                alert('会话已经关闭');
+            }
+
+        }
+        else {
+            alert('浏览器不支持websocket')
+        }
+    }
+
+    function closeWebSocket(){
+        if(websocket != null) {
+            websocket.close();
+        }
+        websocket = null;
+    }
+
+    window.onbeforeunload = function(){
+        if(websocket != null) {
+            websocket.close();
+        }
+    }
+
+    function send(){
+        if(websocket == null) {
+            alert('会话未打开');
+            return;
+        }
+        var message = {};
+        message.user = document.getElementById('user').value;
+        message.message = document.getElementById('text').value;
+        websocket.send(JSON.stringify(message));
+    }
+
+    function clean() {
+        document.getElementById('message').innerHTML = '';
+    }
+
+
+</script>
+
+</body>
+</html>
+
